@@ -1,0 +1,3 @@
+[submodule "vendor/IMAF"]
+	path = vendor/IMAF
+	url = https://github.com/Strox0/IMAF.git
