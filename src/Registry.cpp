@@ -11,21 +11,21 @@ void WinReg::write(const DWORD type, const HKEY hRootKey, LPCTSTR subKey, LPCTST
 		nError = RegCreateKeyEx(hRootKey, subKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
 	}
 
-	nError = RegSetValueEx(hKey, ValueName, NULL, type, (LPBYTE)&data, sizeof(DWORD64));
+	nError = RegSetValueExW(hKey, ValueName, NULL, type, (LPBYTE)&data, sizeof(DWORD64));
 	RegCloseKey(hKey);
 }
 
 void WinReg::write(const DWORD type, const HKEY hRootKey, LPCTSTR subKey, LPCTSTR ValueName, const std::wstring& data)
 {
 	HKEY hKey;
-	LONG nError = RegOpenKeyEx(hRootKey, subKey, NULL, KEY_ALL_ACCESS, &hKey);
+	LONG nError = RegOpenKeyExW(hRootKey, subKey, NULL, KEY_ALL_ACCESS, &hKey);
 
 	if (nError == ERROR_FILE_NOT_FOUND)
 	{
 		nError = RegCreateKeyEx(hRootKey, subKey, NULL, NULL, REG_OPTION_NON_VOLATILE, KEY_ALL_ACCESS, NULL, &hKey, NULL);
 	}
 
-	nError = RegSetValueEx(hKey, ValueName, NULL, type, (LPBYTE)(data.c_str()), data.size());
+	nError = RegSetValueExW(hKey, ValueName, NULL, type, (LPBYTE)(data.c_str()), data.size()*sizeof(wchar_t));
 	RegCloseKey(hKey);
 }
 

@@ -4,14 +4,27 @@
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
-	std::filesystem::path app_location = std::filesystem::current_path();
+	DWORD64 should_start = 0;
+	bool f = false;
+	bool startup = false;
+	WinReg::read(REG_QWORD, HKEY_CURRENT_USER, L"Software\\ZenTask", L"StartUp", should_start, f);
+	if (!f || should_start == 1)
+		startup = true;
 
-	std::wstring val;
-	bool found = false;
-	WinReg::read(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", val, found);
+	if (startup)
+	{
+		WCHAR app_path[MAX_PATH + 2] = { 0 };
+		app_path[0] = L'"';
+		DWORD p_size = GetModuleFileNameW(NULL, &app_path[1], MAX_PATH);
+		app_path[p_size + 1] = L'"';
 
-	if (!found || val != app_location.wstring())
-		WinReg::write(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", app_location.wstring());
+		std::wstring val;
+		bool found = false;
+		WinReg::read(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", val, found);
+
+		if (!found || val != app_path)
+			WinReg::write(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", app_path);
+	}
 
 	bool alert = false;
 	if (lpCmdLine)
