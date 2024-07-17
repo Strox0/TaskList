@@ -28,11 +28,12 @@ namespace Task
 
 		Task();
 		Task(std::string name, std::string description, TimePoint due_date, Priority priority);
-		Task(std::string name, std::string description, TimePoint due_date, Priority priority, bool completed, TimePoint completion_date, TimePoint creation_day);
+		Task(std::string name, std::string description, TimePoint due_date, Priority priority, bool completed, TimePoint completion_date, TimePoint creation_day, TimePoint original_due_date);
 
 		const std::string& GetName() const;
 		const std::string& GetDescription() const;
 		const TimePoint& GetDueDate() const;
+		const TimePoint& GetOriginalDueDate() const;
 		Priority GetPriority() const;
 		const TimePoint& GetCreationDate() const;
 		const std::string GetPriorityAsString() const;
@@ -40,6 +41,7 @@ namespace Task
 		const TimePoint& GetCompletionDate() const;
 		const std::string GetShortDueDateAsString() const;
 		const std::string GetLongDueDateAsString() const;
+		const std::string GetUniqueName() const;
 
 		void SetCompletion(bool completed, const TimePoint& completion_date);
 		void SetName(const std::string& name);
@@ -52,6 +54,7 @@ namespace Task
 		std::string m_name;
 		std::string m_description;
 		TimePoint m_due_date;
+		TimePoint m_original_due_date;
 		Priority m_priority;
 		bool m_completed;
 		TimePoint m_completion_date;
