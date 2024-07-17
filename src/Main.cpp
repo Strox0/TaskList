@@ -1,7 +1,18 @@
 #include "WindowMgr.h"
+#include "Registry.h"
+#include <filesystem>
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdShow)
 {
+	std::filesystem::path app_location = std::filesystem::current_path();
+
+	std::wstring val;
+	bool found = false;
+	WinReg::read(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", val, found);
+
+	if (!found || val != app_location.wstring())
+		WinReg::write(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", app_location.wstring());
+
 	IMAF::AppProperties props;
 	props.center_window = true;
 	props.custom_titlebar = true;
