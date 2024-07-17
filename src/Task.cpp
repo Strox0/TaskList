@@ -99,20 +99,32 @@ const std::string Task::Task::GetShortDueDateAsString() const
 	if (hours > 1344) //8 weeks
 	{
 		int months = hours / 720;
+		std::string add = " month";
 
-		return std::to_string(months) + " months";
+		if (months != 1)
+			add += 's';
+
+		return std::to_string(months) + add;
 	}
 	else if (hours > 336) //14 days
 	{
 		int weeks = hours / 168;
+		std::string add = " week";
 
-		return std::to_string(weeks) + " weeks";
+		if (weeks != 1)
+			add += 's';
+
+		return std::to_string(weeks) + add;
 	}
 	else if (hours > 24)
 	{
 		int days = hours / 24;
+		std::string add = " day";
 
-		return std::to_string(days) + " days";
+		if (days != 1)
+			add += 's';
+
+		return std::to_string(days) + add;
 	}
 	else if (hours > 1)
 	{
@@ -121,11 +133,15 @@ const std::string Task::Task::GetShortDueDateAsString() const
 	else
 	{
 		int minutes = std::chrono::duration_cast<std::chrono::minutes>(diff).count();
+		std::string add = " minute";
+
+		if (minutes != 1)
+			add += 's';
 
 		if (minutes < 0)
 			return "Overdue";
 
-		return std::to_string(minutes) + " minutes";
+		return std::to_string(minutes) + add;
 	}
 }
 
