@@ -95,8 +95,8 @@ void TaskList::AddTask(const Task::Task& task)
 
 void TaskList::TaskEdited(const Task::Task& task)
 {
-	if (m_alerted_tasks.contains(task.GetName()))
-		m_alerted_tasks.erase(task.GetName());
+	if (m_alerted_tasks.contains(task.GetUniqueName()))
+		m_alerted_tasks.erase(task.GetUniqueName());
 	m_saved_task_count = 0;
 	std::filesystem::remove(m_dir_path / "tasks.bin");
 	std::sort(m_tasks.begin(), m_tasks.end(), [](const Task::Task& a, const Task::Task& b) { return a.GetDueDate() < b.GetDueDate(); });
@@ -216,10 +216,10 @@ float TaskList::TaskNode(Task::Task& task, float y_pos)
 	if (task.GetDueDate() < std::chrono::system_clock::now() + std::chrono::minutes(60))
 		color = IM_COL32(230, 75, 75, 255);
 
-	if (task.GetDueDate() < std::chrono::system_clock::now() + std::chrono::minutes(15) && !m_alerted_tasks.contains(task.GetName()))
+	if (task.GetDueDate() < std::chrono::system_clock::now() + std::chrono::minutes(15) && !m_alerted_tasks.contains(task.GetUniqueName()))
 	{
 		ZenTask::Alert(task);
-		m_alerted_tasks.insert(task.GetName());
+		m_alerted_tasks.insert(task.GetUniqueName());
 	}
 
 	// Draw task rectangle
@@ -234,7 +234,7 @@ float TaskList::TaskNode(Task::Task& task, float y_pos)
 
 	// Draw and handle 'Done' button
 	ImGui::SetCursorPos(button_pos);
-	std::string id = ICON_FA_CHECK; id += "##" + task.GetName() + "Done";
+	std::string id = ICON_FA_CHECK; id += "##" + task.GetUniqueName() + "Done";
 	if (ImGui::Button(id.data(), ImVec2(button_width + border_thickness, item_height + border_thickness)))
 	{
 		task.SetCompletion(true, std::chrono::system_clock::now());
