@@ -23,10 +23,12 @@ namespace ZenTask
 	void AddTask(Task::Task* task);
 	void TaskEdited();
 	void CompletedTask();
+	void Alert(Task::Task& due_task);
 
 	class WindowMgr
 	{
 	public:
+		friend void Alert(Task::Task& due_task);
 		friend void CompletedTask();
 		friend void TaskEdited();
 		friend void TitlebarDraw(const IMAF::AppProperties*, GLFWwindow*);
@@ -35,13 +37,14 @@ namespace ZenTask
 		friend void SetCurrentTask(Task::Task* task);
 		friend void switchPanel(uint64_t caller_id, unsigned short target_panel_id);
 
-		WindowMgr(IMAF::AppProperties props);
+		WindowMgr(IMAF::AppProperties props, bool alert);
 
 		void Start();
 
 	private:
 		IMAF::Application m_app;
 		IMAF::Titlebar_Properties m_titlebar_props;
+		bool m_alert;
 
 		std::atomic<float> m_titlebar_height;
 

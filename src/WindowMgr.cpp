@@ -1,3 +1,8 @@
+#ifndef GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
+#endif // !GLFW_EXPOSE_NATIVE_WIN32
+#include "GLFW/glfw3.h"
+#include "GLFW/glfw3native.h"
 #include "WindowMgr.h"
 #include "TaskList.h"
 #include "TaskView.h"
@@ -7,13 +12,14 @@
 
 ZenTask::WindowMgr* _mgr = nullptr;
 
-ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props) :
+ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props, bool alert) :
 	m_titlebar_height(0),
 	mp_selected_task(nullptr),
 	m_tasklist(std::make_shared<TaskList>(&m_titlebar_height, switchPanel)),
 	m_app(props),
 	m_imaf_id(m_tasklist->GetId()),
-	m_titlebar_props(props.custom_titlebar_props)
+	m_titlebar_props(props.custom_titlebar_props),
+	m_alert(alert)
 {
 	_mgr = this;
 	m_app.SetUp([this](const IMAF::AppProperties& props,GLFWwindow* window)
@@ -43,6 +49,9 @@ ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props) :
 void ZenTask::WindowMgr::Start()
 {
 	std::thread t([this]() { m_app.Run(); });
+
+	if (m_alert)
+		Alert(m_tasklist->GetDueTask());
 
 	//t.detach();
 	t.join();
@@ -94,12 +103,34 @@ void ZenTask::TitlebarScalingCallback(IMAF::Titlebar_Properties* out_props, floa
 
 void ZenTask::TaskEdited()
 {
-	_mgr->m_tasklist->TaskEdited();
+	_mgr->m_tasklist->TaskEdited(*_mgr->mp_selected_task);
 }
 
 void ZenTask::CompletedTask()
 {
 	_mgr->m_task_completed++;
+}
+
+void ZenTask::Alert(Task::Task& due_task)
+{
+	SetCurrentTask(&due_task);
+	switchPanel(_mgr->m_imaf_id, PANEL_ID_TASKVIEW);
+	MessageBeep(MB_ICONEXCLAMATION);
+	GLFWwindow* window = nullptr;
+	while (window == nullptr)
+		window = _mgr->m_app.GetWindowHandle();
+
+	glfwRestoreWindow(window);
+	glfwFocusWindow(window);
+
+	FLASHWINFO fwi;
+	fwi.cbSize = sizeof(fwi);
+	fwi.hwnd = glfwGetWin32Window(window);
+	fwi.uCount = 3;
+	fwi.dwFlags = FLASHW_TRAY;
+	fwi.dwTimeout = 0;
+
+	FlashWindowEx(&fwi);
 }
 
 void ZenTask::TitlebarDraw(const IMAF::AppProperties* app_props, GLFWwindow* window)

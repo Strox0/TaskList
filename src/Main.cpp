@@ -13,6 +13,14 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	if (!found || val != app_location.wstring())
 		WinReg::write(REG_SZ, HKEY_CURRENT_USER, L"Software\\Microsoft\\Windows\\CurrentVersion\\Run", L"ZenTask", app_location.wstring());
 
+	bool alert = false;
+	if (lpCmdLine)
+	{
+		std::wstring cmd_line = lpCmdLine;
+		if (cmd_line.find(L"alert") != std::wstring::npos)
+			alert = true;
+	}
+
 	IMAF::AppProperties props;
 	props.center_window = true;
 	props.custom_titlebar = true;
@@ -28,7 +36,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	props.custom_titlebar_props.titlebar_scaling_f = ZenTask::TitlebarScalingCallback;
 	props.custom_titlebar_props.titlebar_draw_f = ZenTask::TitlebarDraw;
 
-	ZenTask::WindowMgr wndmgr(props);
+	ZenTask::WindowMgr wndmgr(props,alert);
 
 	wndmgr.Start();
 	//Sleep(500000);
