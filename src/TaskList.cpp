@@ -3,6 +3,7 @@
 #include <IMAF/Application.h>
 #include <fstream>
 #include <cstdlib>
+#include <algorithm>
 #include "imgui.h"
 #include "IMAF/fonts.h"
 
@@ -28,6 +29,8 @@ TaskList::TaskList(std::atomic<float>* titlebar_height, void(*panel_switch_callb
 	}
 
 	LoadTasks();
+
+	std::sort(m_tasks.begin(), m_tasks.end(), [](const Task::Task& a, const Task::Task& b) { return a.GetDueDate() < b.GetDueDate(); });
 }
 
 TaskList::~TaskList()
@@ -87,12 +90,14 @@ void TaskList::UiRender()
 void TaskList::AddTask(const Task::Task& task)
 {
 	m_tasks.push_back(task);
+	std::sort(m_tasks.begin(), m_tasks.end(), [](const Task::Task& a, const Task::Task& b) { return a.GetDueDate() < b.GetDueDate(); });
 }
 
 void TaskList::TaskEdited()
 {
 	m_saved_task_count = 0;
 	std::filesystem::remove(m_dir_path / "tasks.bin");
+	std::sort(m_tasks.begin(), m_tasks.end(), [](const Task::Task& a, const Task::Task& b) { return a.GetDueDate() < b.GetDueDate(); });
 }
 
 int TaskList::GetPendingTaskCount() const
@@ -193,11 +198,16 @@ float TaskList::TaskNode(Task::Task& task, float y_pos)
 		}
 	}
 
+	ImU32 color = IM_COL32(255, 255, 255, 255);
+
+	if (task.GetDueDate() < std::chrono::system_clock::now() + std::chrono::minutes(60))
+		color = IM_COL32(230, 75, 75, 255);
+
 	// Draw task rectangle
 	draw_list->AddRect(
 		ImVec2(rect_start.x, rect_start.y - scroll.y),
 		ImVec2(rect_end.x, rect_end.y - scroll.y),
-		IM_COL32(255, 255, 255, 255),
+		color,
 		rounding,
 		ImDrawFlags_RoundCornersAll,
 		border_thickness
@@ -217,7 +227,7 @@ float TaskList::TaskNode(Task::Task& task, float y_pos)
 	draw_list->AddRect(
 		ImVec2(button_pos.x + wpos.x, button_pos.y + wpos.y - scroll.y),
 		ImVec2(button_pos.x + wpos.x + button_width + border_thickness, button_pos.y + wpos.y + item_height + border_thickness - scroll.y),
-		IM_COL32(255, 255, 255, 255),
+		color,
 		rounding,
 		ImDrawFlags_RoundCornersAll,
 		border_thickness
@@ -236,7 +246,7 @@ float TaskList::TaskNode(Task::Task& task, float y_pos)
 	draw_list->AddLine(
 		ImVec2(rect_end.x - style.ItemInnerSpacing.x*2 - text_size_due.x, rect_start.y - scroll.y + style.ItemInnerSpacing.y),
 		ImVec2(rect_end.x - style.ItemInnerSpacing.x*2 - text_size_due.x, rect_end.y - scroll.y - style.ItemInnerSpacing.y),
-		IM_COL32(255, 255, 255, 255),
+		IM_COL32(255,255,255,255),
 		border_thickness
 	);
 
