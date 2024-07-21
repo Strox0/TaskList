@@ -13,7 +13,6 @@ TaskEdit::TaskEdit(std::atomic<float>* titlebar_height, void(*panel_switch_callb
 	if (m_task == nullptr)
 	{
 		m_adding_task = true;
-		m_task = new Task::Task();
 		ImGui::SetDateToday(&m_due_date_tm);
 		m_priority = Task::Task::Priority::CRITICAL;
 		m_priority_index = Task::Task::Priority::CRITICAL;
@@ -134,11 +133,16 @@ void TaskEdit::UiRender()
 	ImGui::SetCursorPosY(size.y - button_size.y - spacing.y*2);
 	if (ImGui::Button(button_text.c_str(), button_size))
 	{
-		m_task->SetName(m_title);
-		m_task->SetDescription(m_description);
-		m_task->SetPriority((Task::Task::Priority)m_priority_index);
-		m_task->SetDueDate(std::chrono::system_clock::from_time_t(std::mktime(&m_due_date_tm)));
-		m_task->SetCreationDate(std::chrono::system_clock::now());
+		if (m_adding_task)
+			m_task = new Task::Task(m_title, m_description, std::chrono::system_clock::from_time_t(std::mktime(&m_due_date_tm)), (Task::Task::Priority)m_priority_index);
+		else
+		{
+			m_task->SetName(m_title);
+			m_task->SetDescription(m_description);
+			m_task->SetPriority((Task::Task::Priority)m_priority_index);
+			m_task->SetDueDate(std::chrono::system_clock::from_time_t(std::mktime(&m_due_date_tm)));
+			m_task->SetCreationDate(std::chrono::system_clock::now());
+		}
 
 		if (m_adding_task)
 			ZenTask::AddTask(m_task);
