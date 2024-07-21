@@ -12,14 +12,13 @@
 
 ZenTask::WindowMgr* _mgr = nullptr;
 
-ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props, bool alert) :
+ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props) :
 	m_titlebar_height(0),
 	mp_selected_task(nullptr),
 	m_tasklist(std::make_shared<TaskList>(&m_titlebar_height, switchPanel)),
 	m_app(props),
 	m_imaf_id(m_tasklist->GetId()),
-	m_titlebar_props(props.custom_titlebar_props),
-	m_alert(alert)
+	m_titlebar_props(props.custom_titlebar_props)
 {
 	_mgr = this;
 	m_app.SetUp([this](const IMAF::AppProperties& props,GLFWwindow* window)
@@ -49,9 +48,6 @@ ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props, bool alert) :
 void ZenTask::WindowMgr::Start()
 {
 	std::thread t([this]() { m_app.Run(); });
-
-	if (m_alert)
-		Alert(m_tasklist->GetDueTask());
 
 	//t.detach();
 	t.join();
