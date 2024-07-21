@@ -104,7 +104,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 			if (!file.is_open())
 			{
 				PRINT_DEBUG("Opening tasks file\n");
-				file.open(dir_path / "tasks.bin");
+				file.open(dir_path / "tasks.bin", std::ios::binary);
 				tasks.clear();
 
 				while (file)
