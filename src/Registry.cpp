@@ -37,9 +37,10 @@ void WinReg::read(const DWORD type, const HKEY hRootKey, LPCTSTR subkey, LPCTSTR
 	LRESULT lResult = RegOpenKeyEx(hRootKey, subkey, 0, KEY_ALL_ACCESS, &key);
 	found = true;
 
-	if (lResult == ERROR_SUCCESS) 
-		RegQueryValueEx(key, ValueName, NULL, (LPDWORD)&type, (LPBYTE)&_value, &value_length);
-	else if (lResult == ERROR_FILE_NOT_FOUND) 
+	if (lResult == ERROR_SUCCESS)
+		lResult = RegQueryValueExW(key, ValueName, NULL, (LPDWORD)&type, (LPBYTE)&_value, &value_length);
+
+	if (lResult == ERROR_FILE_NOT_FOUND)
 		found = false;
 
 	RegCloseKey(key);
@@ -54,9 +55,10 @@ void WinReg::read(const DWORD type, const HKEY hRootKey, LPCTSTR subkey, LPCTSTR
 	LRESULT lResult = RegOpenKeyEx(hRootKey, subkey, 0, KEY_ALL_ACCESS, &key);
 	found = true;
 
-	if (lResult == ERROR_SUCCESS) 
-		RegQueryValueExW(key, ValueName, NULL, (LPDWORD)&type, (LPBYTE)&_value, &vlenght);
-	else if (lResult == ERROR_FILE_NOT_FOUND) 
+	if (lResult == ERROR_SUCCESS)
+		lResult = RegQueryValueExW(key, ValueName, NULL, (LPDWORD)&type, (LPBYTE)&_value, &vlenght);
+
+	if (lResult == ERROR_FILE_NOT_FOUND)
 		found = false;
 
 	RegCloseKey(key);
