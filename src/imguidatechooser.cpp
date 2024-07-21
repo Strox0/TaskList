@@ -151,13 +151,13 @@ namespace ImGui {
             ImGui::PopStyleVar();
 
             ImGui::SetNextItemWidth(buttonWidth);
-            if (ImGui::DragInt("##hour", &t.tm_hour, 1, 0, 23))
+            if (ImGui::DragInt("##hour", &t.tm_hour, 1, 0, 23, "%d", ImGuiSliderFlags_AlwaysClamp))
                 value_changed = true;
             ImGui::SameLine(0,5);
             ImGui::Text(":");
             ImGui::SameLine(0,5);
             ImGui::SetNextItemWidth(buttonWidth);
-            if (ImGui::DragInt("##minute", &t.tm_min, 1, 0, 59))
+            if (ImGui::DragInt("##minute", &t.tm_min, 1, 0, 59, "%d", ImGuiSliderFlags_AlwaysClamp))
                 value_changed = true;
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, { 0,0 });
