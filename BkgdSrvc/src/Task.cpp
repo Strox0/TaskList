@@ -1,0 +1,294 @@
+#include "Task.h"
+
+Task::Task() :
+	m_name(""),
+	m_description(""),
+	m_priority(Priority::LOW),
+	m_completed(false)
+{
+}
+
+Task::Task(std::string name, std::string description, TimePoint due_date, Priority priority) :
+	m_name(name),
+	m_description(description),
+	m_due_date(due_date),
+	m_priority(priority),
+	m_completed(false),
+	m_completion_date(),
+	m_creation_date(std::chrono::system_clock::now()),
+	m_original_due_date(due_date)
+{
+
+}
+
+Task::Task(std::string name, std::string description, TimePoint due_date, Priority priority, bool completed, TimePoint completion_date, TimePoint creation_day, TimePoint original_due_date) :
+	m_name(name),
+	m_description(description),
+	m_due_date(due_date),
+	m_priority(priority),
+	m_completed(completed),
+	m_completion_date(completion_date),
+	m_creation_date(creation_day),
+	m_original_due_date(original_due_date)
+{
+
+}
+
+void Task::SetCompletion(bool completed, const TimePoint& completion_date)
+{
+	m_completed = completed;
+	m_completion_date = completion_date;
+}
+
+const std::string& Task::GetName() const
+{
+	return m_name;
+}
+
+const std::string& Task::GetDescription() const
+{
+	return m_description;
+}
+
+const Task::TimePoint& Task::GetDueDate() const
+{
+	return m_due_date;
+}
+
+const Task::TimePoint& Task::GetOriginalDueDate() const
+{
+	return m_original_due_date;
+}
+
+Task::Priority Task::GetPriority() const
+{
+	return m_priority;
+}
+
+const Task::TimePoint& Task::GetCreationDate() const
+{
+	return m_creation_date;
+}
+
+const std::string Task::GetPriorityAsString() const
+{
+	switch (m_priority)
+	{
+	case Task::Priority::CRITICAL:	return "Critical";
+	case Task::Priority::URGENT:		return "Urgent";
+	case Task::Priority::HIGH:		return "High";
+	case Task::Priority::MEDIUM:		return "Medium";
+	case Task::Priority::LOW:			return "Low";
+	}
+	return "";
+}
+
+bool Task::IsCompleted() const
+{
+	return m_completed;
+}
+
+const Task::TimePoint& Task::GetCompletionDate() const
+{
+	return m_completion_date;
+}
+
+const std::string Task::GetShortDueDateAsString() const
+{
+	std::chrono::duration<double> diff = m_due_date - std::chrono::system_clock::now();
+
+	int hours = std::chrono::duration_cast<std::chrono::hours>(diff).count();
+
+	if (hours > 1344) //8 weeks
+	{
+		int months = hours / 720;
+		std::string add = " month";
+
+		if (months != 1)
+			add += 's';
+
+		return std::to_string(months) + add;
+	}
+	else if (hours > 336) //14 days
+	{
+		int weeks = hours / 168;
+		std::string add = " week";
+
+		if (weeks != 1)
+			add += 's';
+
+		return std::to_string(weeks) + add;
+	}
+	else if (hours > 24)
+	{
+		int days = hours / 24;
+		std::string add = " day";
+
+		if (days != 1)
+			add += 's';
+
+		return std::to_string(days) + add;
+	}
+	else if (hours > 1)
+	{
+		return std::to_string(hours) + " hours";
+	}
+	else
+	{
+		int minutes = std::chrono::duration_cast<std::chrono::minutes>(diff).count();
+		std::string add = " minute";
+
+		if (minutes != 1)
+			add += 's';
+
+		if (minutes < 0)
+			return "Overdue";
+
+		return std::to_string(minutes) + add;
+	}
+}
+
+const std::string Task::GetLongDueDateAsString() const
+{
+	std::chrono::year_month_day t(std::chrono::floor<std::chrono::days>(m_due_date));
+
+	std::string date = std::to_string((int)t.year()) + '.' + std::to_string((unsigned int)t.month()) + '.';
+
+	if ((unsigned int)t.day() < 10)
+		date += '0';
+	date += std::to_string((unsigned int)t.day());
+
+	return date;
+}
+
+const std::string Task::GetUniqueName() const
+{
+	std::string name = m_name;
+	name += "##";
+	name += std::to_string(m_creation_date.time_since_epoch().count());
+
+	return m_name;
+}
+
+void Task::SetName(const std::string& name)
+{
+	m_name = name;
+}
+
+void Task::SetDescription(const std::string& description)
+{
+	m_description = description;
+}
+
+void Task::SetDueDate(const TimePoint& due_date)
+{
+	m_due_date = due_date;
+}
+
+void Task::SetPriority(Priority priority)
+{
+	m_priority = priority;
+}
+
+void Task::SetCreationDate(const TimePoint& creation_date)
+{
+	m_creation_date = creation_date;
+}
+
+std::ostream& Serialize(const Task& task, std::ostream& stream)
+{
+	if (!stream.good())
+		return stream;
+
+	typedef char sbyte;
+	static constexpr uint32_t magic = 0x7a2300ff;
+
+	uint32_t name_size = task.GetName().size();
+	uint32_t desc_size = task.GetDescription().size();
+
+	uint32_t size = name_size + desc_size + sizeof(uint32_t) * 4 + sizeof(std::chrono::system_clock::rep) * 4 + sizeof(Task::Priority);
+
+	stream.write((sbyte*)&magic, sizeof(magic));
+	stream.write((sbyte*)&size, sizeof(size));
+
+	stream.write((sbyte*)&name_size, sizeof(name_size));
+	stream.write(task.GetName().c_str(), name_size);
+
+	stream.write((sbyte*)&desc_size, sizeof(desc_size));
+	stream.write(task.GetDescription().c_str(), desc_size);
+
+	std::chrono::system_clock::rep creation_date = task.GetCreationDate().time_since_epoch().count();
+	std::chrono::system_clock::rep due_date = task.GetDueDate().time_since_epoch().count();
+	std::chrono::system_clock::rep completion_date = task.IsCompleted() ? task.GetCompletionDate().time_since_epoch().count() : 0;
+	std::chrono::system_clock::rep original_due_date = task.GetOriginalDueDate().time_since_epoch().count();
+
+	stream.write((sbyte*)&creation_date, sizeof(creation_date));
+	stream.write((sbyte*)&due_date, sizeof(due_date));
+	stream.write((sbyte*)&original_due_date, sizeof(original_due_date));
+	stream.write((sbyte*)&completion_date, sizeof(completion_date));
+
+	Task::Priority prio = task.GetPriority();
+	stream.write((sbyte*)&prio, sizeof(prio));
+
+	return stream;
+}
+
+Task Deserialize(std::istream& stream)
+{
+	typedef char sbyte;
+
+	if (!stream.good())
+		return Task("", "", std::chrono::system_clock::now(), Task::Priority::LOW);
+
+	long long start_pos = stream.tellg();
+	stream.seekg(0, std::ios::end);
+	long long data_size = stream.tellg() - start_pos;
+	stream.seekg(start_pos, std::ios::beg);
+
+	struct
+	{
+		uint32_t magic;
+		uint32_t size;
+	} _info;
+
+	stream.read((sbyte*)&_info, sizeof(_info));
+
+	if (_info.magic != 0x7a2300ff || data_size < _info.size)
+		return Task("", "", std::chrono::system_clock::now(), Task::Priority::LOW);
+
+	uint32_t name_size = 0;
+	stream.read((sbyte*)&name_size, sizeof(name_size));
+
+	std::string name(name_size, '\0');
+	stream.read(&name[0], name_size);
+
+	uint32_t desc_size = 0;
+	stream.read((sbyte*)&desc_size, sizeof(desc_size));
+
+	std::string desc(desc_size, '\0');
+	stream.read(&desc[0], desc_size);
+
+	std::chrono::system_clock::rep creation_date = 0;
+	std::chrono::system_clock::rep due_date = 0;
+	std::chrono::system_clock::rep completion_date = 0;
+	std::chrono::system_clock::rep original_due_date = 0;
+
+	stream.read((sbyte*)&creation_date, sizeof(creation_date));
+	stream.read((sbyte*)&due_date, sizeof(due_date));
+	stream.read((sbyte*)&original_due_date, sizeof(original_due_date));
+	stream.read((sbyte*)&completion_date, sizeof(completion_date));
+
+	Task::Priority prio = Task::Priority::LOW;
+	stream.read((sbyte*)&prio, sizeof(prio));
+
+	return Task(
+		name,
+		desc,
+		Task::TimePoint(std::chrono::system_clock::duration(due_date)),
+		prio,
+		completion_date != 0,
+		Task::TimePoint(std::chrono::system_clock::duration(completion_date)),
+		Task::TimePoint(std::chrono::system_clock::duration(creation_date)),
+		Task::TimePoint(std::chrono::system_clock::duration(original_due_date))
+	);
+}
