@@ -45,3 +45,22 @@ project "TaskList"
 	links {
 		"IMAF"
 	}
+
+project "BkgdSrvc"
+	kind "WindowedApp"
+	language "C++"
+	cppdialect "C++20"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .. "/")
+	objdir ("bin-int/" .. outputdir .. "/")
+
+	includedirs {
+		"BkgdSrvc/src/",
+	}
+
+	files {
+		"src/**.cpp",
+		"src/**.h",
+		"src/**.c"
+	}

@@ -9,6 +9,8 @@
 #include "TaskEdit.h"
 #include <thread>
 #include "IMAF/fonts.h"
+#include "IMAF/Image.h"
+#include "Icons-DATA.h"
 
 ZenTask::WindowMgr* _mgr = nullptr;
 
@@ -37,6 +39,26 @@ ZenTask::WindowMgr::WindowMgr(IMAF::AppProperties props) :
 			m_titlebar_props.AddExclusion(IMAF::ExclusionSpec(0.f, IMAF::Val(5), IMAF::Val(40) + style.ItemSpacing.x, IMAF::Val(40)));
 			m_app.SetTitlebarProperties(m_titlebar_props);
 			m_titlebar_height.store((float)m_titlebar_props.height);
+
+			IMAF::Image icon_16(ZenTask::BINDATA::icon16, sizeof(ZenTask::BINDATA::icon16));
+			IMAF::Image icon_32(ZenTask::BINDATA::icon32, sizeof(ZenTask::BINDATA::icon32));
+			IMAF::Image icon_48(ZenTask::BINDATA::icon48, sizeof(ZenTask::BINDATA::icon48));
+			if (icon_32.Error() || icon_16.Error() || icon_48.Error())
+				MessageBoxA(NULL, "Failed to load icons", "Error", MB_OK);
+			else
+			{
+				GLFWimage icon[3];
+				icon[0].width = icon_32.GetSize().x;
+				icon[0].height = icon_32.GetSize().y;
+				icon[0].pixels = icon_32.GetRawData();
+				icon[1].width = icon_16.GetSize().x;
+				icon[1].height = icon_16.GetSize().y;
+				icon[1].pixels = icon_16.GetRawData();
+				icon[2].width = icon_48.GetSize().x;
+				icon[2].height = icon_48.GetSize().y;
+				icon[2].pixels = icon_48.GetRawData();
+				glfwSetWindowIcon(window, 3, icon);
+			}
 		}
 	);
 
